@@ -172,7 +172,7 @@ function Footer() {
         </div>
         <div className="flex items-center gap-4">
           <a
-            href="https://x.com"
+            href="https://x.com/asaivenkatesh1"
             target="_blank"
             rel="noreferrer"
             aria-label="X (Twitter)"
@@ -188,7 +188,7 @@ function Footer() {
             </svg>
           </a>
           <a
-            href="https://github.com"
+            href="https://github.com/venki1402"
             target="_blank"
             rel="noreferrer"
             aria-label="GitHub"
