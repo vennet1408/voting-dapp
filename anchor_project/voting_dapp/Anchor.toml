@@ -1,0 +1,22 @@
+[toolchain]
+package_manager = "yarn"
+
+[features]
+resolution = true
+skip-lint = false
+
+[programs.localnet]
+voting_dapp = "AnRj2tnQxDk67Ms45s19YTQRZCCPnWd3yvssfoxCm1fN"
+
+[programs.devnet]
+voting_dapp = "AnRj2tnQxDk67Ms45s19YTQRZCCPnWd3yvssfoxCm1fN"
+
+[registry]
+url = "https://api.apr.dev"
+
+[provider]
+cluster = "devnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "yarn run mocha -t 1000000 tests/"

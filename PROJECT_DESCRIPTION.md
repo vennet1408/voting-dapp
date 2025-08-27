@@ -1,74 +1,88 @@
 # Project Description
 
-**Deployed Frontend URL:** [TODO: Link to your deployed frontend]
+**Deployed Frontend URL:** [TODO: Add once deployed]
 
-**Solana Program ID:** [TODO: Your deployed program's public key]
+**Solana Program ID:** `AnRj2tnQxDk67Ms45s19YTQRZCCPnWd3yvssfoxCm1fN`
 
 ## Project Overview
 
 ### Description
-[TODO: Provide a comprehensive description of your dApp. Explain what it does. Be detailed about the core functionality.]
+
+On-chain polling/voting dApp. An authority creates a poll with a question and up to 10 options. Wallets cast exactly one vote per poll. The poll authority can close the poll to stop further voting. Vote counts are stored on-chain.
 
 ### Key Features
-[TODO: List the main features of your dApp. Be specific about what users can do.]
 
-- Feature 1: [Description]
-- Feature 2: [Description]
-- ...
+- **Create poll**: Authority seeds a PDA poll with question and options count.
+- **Cast vote**: Any wallet can vote once per poll; counts updated atomically.
+- **Close poll**: Authority closes poll to freeze voting; results remain on-chain.
   
 ### How to Use the dApp
-[TODO: Provide step-by-step instructions for users to interact with your dApp]
 
-1. **Connect Wallet**
-2. **Main Action 1:** [Step-by-step instructions]
-3. **Main Action 2:** [Step-by-step instructions]
-4. ...
+1. **Connect Wallet** on Devnet.
+2. **Create Poll**: Enter question and options count (2–10). Submit.
+3. **Vote**: Select an option and cast your vote (one per wallet per poll).
+4. **Close Poll** (authority only): Finalizes the poll and halts new votes.
 
 ## Program Architecture
-[TODO: Describe your Solana program's architecture. Explain the main instructions, account structures, and data flow.]
+
+Anchor-based program with two PDA-backed accounts: `Poll` and `VoterRecord`. Instructions: `create_poll`, `vote`, `close_poll`. Counts use checked math; account sizes are fixed; inputs validated.
 
 ### PDA Usage
-[TODO: Explain how you implemented Program Derived Addresses (PDAs) in your project. What seeds do you use and why?]
 
-**PDAs Used:**
-- PDA 1: [Purpose and description]
-- PDA 2: [Purpose and description]
+**Seeds and purposes:**
+
+- `poll` PDA: seeds = ["poll", authority, poll_id_le]. Uniquely identifies a poll created by `authority`.
+- `vote` PDA: seeds = ["vote", poll_pubkey, voter]. Ensures one vote per wallet per poll via address uniqueness.
 
 ### Program Instructions
-[TODO: List and describe all the instructions in your Solana program]
 
 **Instructions Implemented:**
-- Instruction 1: [Description of what it does]
-- Instruction 2: [Description of what it does]
-- ...
+
+- `create_poll(poll_id: u64, question: String, options_count: u8)`: Initializes a `Poll` PDA, validates sizes and limits.
+- `vote(option_index: u8)`: Creates a `VoterRecord` PDA and increments the selected option count; validates range and openness.
+- `close_poll()`: Authority-only; marks `is_open = false`.
 
 ### Account Structure
-[TODO: Describe your main account structures and their purposes]
 
 ```rust
-// Example account structure (replace with your actual structs)
 #[account]
-pub struct YourAccountName {
-    // Describe each field
+pub struct Poll {
+    pub authority: Pubkey,
+    pub poll_id: u64,
+    pub bump: u8,
+    pub is_open: bool,
+    pub options_count: u8,
+    pub counts: [u32; 10],
+    pub question: String,
+}
+
+#[account]
+pub struct VoterRecord {
+    pub poll: Pubkey,
+    pub voter: Pubkey,
+    pub bump: u8,
+    pub option_index: u8,
 }
 ```
 
 ## Testing
 
 ### Test Coverage
-[TODO: Describe your testing approach and what scenarios you covered]
+
+Unit tests via Anchor’s Mocha runner cover core flows and validation.
 
 **Happy Path Tests:**
-- Test 1: [Description]
-- Test 2: [Description]
-- ...
+
+- Create a poll, cast a vote, and close the poll; asserts on-chain state transitions.
 
 **Unhappy Path Tests:**
-- Test 1: [Description of error scenario]
-- Test 2: [Description of error scenario]
-- ...
+
+- Invalid option index (out of range) rejected.
+- Voting after poll is closed rejected.
+- Question exceeding 128 bytes rejected.
 
 ### Running Tests
+
 ```bash
 # Commands to run your tests
 anchor test
@@ -76,4 +90,5 @@ anchor test
 
 ### Additional Notes for Evaluators
 
-[TODO: Add any specific notes or context that would help evaluators understand your project better]
+- Cluster: Devnet. Program ID recorded above.
+- PDAs enforce one-vote-per-poll per wallet via addressing, not runtime lists.
